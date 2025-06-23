@@ -1,47 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from "./Header";
-import WineCards from "./components/WineCards"
-import FilterSidebar from "./components/FilterSidebar"
-const wines = [
-  {
-    id: 1,
-      title: "Vintner’s Reserve Cabernet Sauvignon",
-      subtitle: "2018 | McLaren Vale",
-      volume: "750ml",
-      price: "$42",
-      memberOnly: true,
-      // Placeholder image 300×400 with custom “Wine 1” text
-      image: "https://via.placeholder.com/300x400.png?text=Wine+1",
-      points: 93,
-  },
-  {
-    id: 2,
-    title: "Russian River Valley Sparkling Rosé",
-    subtitle: "2018 | McLaren Vale",
-    type: "Cabernet Sauvignon",
-    volume: "750ml",
-    price: "$42",
-    memberOnly: false,
-    image: "https://images.unsplash.com/photo-1601924579534-874a7946e8b3",
-  },
-  {
-    id: 3,
-    title: "Russian River Valley Sparkling Rosé",
-    subtitle: "2018 | McLaren Vale",
-    type: "Cabernet Sauvignon Extra Text added",
-    volume: "750ml",
-    price: "$42",
-    memberOnly: true,
-    image: "https://images.unsplash.com/photo-1604917623896-4ac1911c3a2b",
-  },
-];
+import WineCards from "./components/WineCards";
+import FilterSidebar from "./components/FilterSidebar";
 
+import { wines } from "./array"
 export default function App() {
-    const [isFilterOpen, setIsFilterOpen]= useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterType, setFilterType]= useState("");
+    useEffect(() => {
+    fetch("/api/cart")
+      .then((res) => res.json())
+      .then((data) => console.log(data))
+      .catch((err) => console.error("Error fetching cart:", err));
+  }, []);
   return (
     <div className="font-sans text-gray-900">
-        <Header />
-      
+      {/* pass wines into Header */}
+      <Header wines={wines} />
 
       {/* Hero Section */}
       <div
@@ -49,22 +24,22 @@ export default function App() {
         style={{
           backgroundImage: "url('/images/red-wine-banner.png')",
         }}
-      ></div>
+      />
 
       {/* Shop Section */}
       <div className="px-6 py-10">
         <h2 className="text-2xl font-semibold mb-6">Shop Wines</h2>
-        
-      {/* the filter sidebar*/}
-      <FilterSidebar 
-      isOpen= {isFilterOpen}
-      onClose={() => setIsFilterOpen(false)}
-      />
 
-        
+        {/* the filter sidebar */}
+        <FilterSidebar
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
+          onTypeSelect={setFilterType}
+          selectedType={filterType}
+        />
 
         {/* Wine Cards */}
-       <WineCards />
+        <WineCards filterType={filterType} />
       </div>
     </div>
   );
