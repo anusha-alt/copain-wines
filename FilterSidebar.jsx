@@ -1,24 +1,34 @@
 import React, { useState } from "react";
+import { wines as allWines } from "../array";
+import { useFavoritesStore } from "../store/useFavoritesStore";
 
-export default function FilterSidebar() {
-  // controls whether the sidebar is visible
+const FilterSidebar = ({
+  selectedType = "",
+  onTypeSelect = () => {},
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  // controls which accordion section is open
   const [expanded, setExpanded] = useState(null);
+  const favorites = useFavoritesStore((s) => s.favorites);
 
   const toggleSection = (key) => {
     setExpanded((prev) => (prev === key ? null : key));
   };
 
+  const typeMap = {
+    "RED WINES": "Red",
+    "WHITE WINES": "White",
+    "ROSÉ": "Rosé",
+    "SPARKLING": "Sparkling",
+  };
+
   return (
     <>
-      {/* 1) The Filter button */}
+      {/* Filter button */}
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
         <button
           onClick={() => setIsOpen(true)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-maroon text-white rounded hover:bg-maroon-dark transition"
         >
-          {/* you can swap this SVG for any icon you like */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5"
@@ -37,16 +47,15 @@ export default function FilterSidebar() {
         </button>
       </div>
 
-      {/* 2) Sidebar + overlay */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex">
           {/* backdrop */}
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setIsOpen(false)}
-          ></div>
+          />
 
-          {/* sidebar panel */}
+          {/* sidebar */}
           <div className="relative ml-auto w-full max-w-xs bg-white h-full shadow-xl overflow-y-auto">
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b">
@@ -61,6 +70,36 @@ export default function FilterSidebar() {
 
             {/* content */}
             <div className="px-6 py-4 space-y-6">
+              {/* Favorites */}
+              <div>
+                <button
+                  className="w-full flex justify-between items-center py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                  onClick={() => toggleSection("favorites")}
+                >
+                  <span>Favorites</span>
+                  <span>{expanded === "favorites" ? "−" : "+"}</span>
+                </button>
+                {expanded === "favorites" && (
+                  <div className="mt-2 space-y-2 text-sm text-gray-600">
+                    {favorites.length > 0 ? (
+                      favorites.map((id) => {
+                        const wine = allWines.find((w) => w.id === id);
+                        return (
+                          <div
+                            key={id}
+                            className="px-2 py-1 bg-gray-100 rounded"
+                          >
+                            {wine?.title || "Unknown Wine"}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="italic text-gray-500">No favorites yet.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Featured Collections */}
               <div>
                 <button
@@ -81,10 +120,7 @@ export default function FilterSidebar() {
                       "New Collection",
                     ].map((label) => (
                       <label key={label} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="form-checkbox mr-2"
-                        />
+                        <input type="checkbox" className="form-checkbox mr-2" />
                         {label}
                       </label>
                     ))}
@@ -103,16 +139,31 @@ export default function FilterSidebar() {
                 </button>
                 {expanded === "wineType" && (
                   <div className="mt-2 grid grid-cols-2 gap-2">
-                    {["RED WINES", "WHITE WINES", "ROSÉ", "SPARKLING"].map(
-                      (type) => (
-                        <button
-                          key={type}
-                          className="py-2 px-3 bg-gray-100 text-gray-800 text-sm font-medium rounded hover:bg-gray-200"
-                        >
-                          {type}
-                        </button>
-                      )
-                    )}
+                    {Object.entries(typeMap).map(([label, value]) => (
+                      <button
+                        key={label}
+                        onClick={() => {
+                          onTypeSelect(value);
+                          setIsOpen(false);
+                        }}
+                        className={`py-2 px-3 text-sm font-medium rounded hover:bg-gray-200 ${
+                          selectedType === value
+                            ? "bg-maroon text-white"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {
+                        onTypeSelect("");
+                        setIsOpen(false);
+                      }}
+                      className="col-span-2 py-2 px-3 text-sm font-medium rounded bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    >
+                      All Wines
+                    </button>
                   </div>
                 )}
               </div>
@@ -144,10 +195,7 @@ export default function FilterSidebar() {
                         "Sparkling Rosé (14)",
                       ].map((label) => (
                         <label key={label} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            className="form-checkbox mr-2"
-                          />
+                          <input type="checkbox" className="form-checkbox mr-2" />
                           {label}
                         </label>
                       ))}
@@ -217,33 +265,23 @@ export default function FilterSidebar() {
                       <div className="font-medium text-gray-700 mb-1">
                         Protein
                       </div>
-                      {["Beef", "Chicken", "Nuts", "Shellfish"].map(
-                        (label) => (
-                          <label key={label} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              className="form-checkbox mr-2"
-                            />
-                            {label}
-                          </label>
-                        )
-                      )}
+                      {["Beef", "Chicken", "Nuts", "Shellfish"].map((label) => (
+                        <label key={label} className="flex items-center">
+                          <input type="checkbox" className="form-checkbox mr-2" />
+                          {label}
+                        </label>
+                      ))}
                     </div>
                     <div>
                       <div className="font-medium text-gray-700 mb-1">
                         Cuisine
                       </div>
-                      {["Chinese", "Italian", "Japanese", "Thai"].map(
-                        (label) => (
-                          <label key={label} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              className="form-checkbox mr-2"
-                            />
-                            {label}
-                          </label>
-                        )
-                      )}
+                      {["Chinese", "Italian", "Japanese", "Thai"].map((label) => (
+                        <label key={label} className="flex items-center">
+                          <input type="checkbox" className="form-checkbox mr-2" />
+                          {label}
+                        </label>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -254,4 +292,6 @@ export default function FilterSidebar() {
       )}
     </>
   );
-}
+};
+
+export default FilterSidebar;
